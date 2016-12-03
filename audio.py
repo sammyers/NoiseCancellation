@@ -46,7 +46,7 @@ class NoiseCanceller(object):
             filter_output[n] = np.dot(coeffs, moving_signal)
 
         return filter_output
-
+        
     def cancel_noise(input_signal, original_signal, noise_signal):
         """
         Hopefully cancel some noise.
