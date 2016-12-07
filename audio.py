@@ -21,13 +21,20 @@ class NoiseCanceller(object):
         Hopefully cancel some noise.
         """
         error_signal = np.zeros(input_signal.size)
-        filter_output = np.zeros(input_signal.size)
-        coeffs = np.zeros(self.num_samples)
+        lms_song = np.zeros(input_signal.size)
+        lms_noise = np.zeros(input_signal.size)
+        noise_cancelled = np.zeros(input_signal.size)
+        song_coeffs = np.zeros(self.num_samples)
+        noise_coeffs = np.zeros(self.num_samples)
         for n in range(self.num_samples, input_signal.size):
-            moving_signal = noise_signal[n:n-self.num_samples:-1]
-            filter_output[n] = np.dot(coeffs, moving_signal)
-            error_signal[n] = input_signal[n] - filter_output[n] - original_signal[n]
-            coeffs = coeffs + (self.step_size * error_signal[n]) * moving_signal / np.linalg.norm(moving_signal) ** 2
+            moving_noise = noise_signal[n:n-self.num_samples:-1]
+            moving_song = original_signal[n:n-self.num_samples:-1]
+            lms_song[n] = np.dot(song_coeffs, moving_song)
+            lms_noise[n] = np.dot(noise_coeffs, moving_noise)
+            error_signal[n] = input_signal[n] - lms_noise[n] - lms_song[n]
+            song_coeffs = song_coeffs + (self.step_size * error_signal[n]) * moving_song
+            noise_coeffs = noise_coeffs + (self.step_size * error_signal[n]) * moving_noise
+            noise_cancelled[n] = input_signal[n] - np.dot(noise_coeffs, moving_noise)
             # if n == 44000:
             #     print(n)
             #     # print(e)
@@ -35,7 +42,7 @@ class NoiseCanceller(object):
             #     print(error_signal[n])
             #     print(moving_signal)
             #     break
-        return error_signal, input_signal - filter_output
+        return error_signal, noise_cancelled
 
 if __name__ == '__main__':
     np.seterr(all='raise')
@@ -47,7 +54,7 @@ if __name__ == '__main__':
     headphone = headphone[:, 0].flatten()
     noise = noise[:, 1].flatten()
     error, cancelled = nc.cancel_noise(headphone, haddaway, noise)
-    wavfile.write('/Users/sam/git/NoiseCancellation/cancelled.wav', sr3, cancelled)
+    wavfile.write('/Users/sam/git/NoiseCancellation/cancelled.wav', sr3, cancelled[100:])
     plt.figure(1)
 
     ax1 = plt.subplot(511)
