@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class NoiseCanceller(object):
 
-    def __init__(self, step_size=0.03, num_samples=100):
+    def __init__(self, step_size=0.03, num_samples=2000):
         self.step_size = step_size
         self.num_samples = num_samples
 
@@ -32,29 +32,27 @@ class NoiseCanceller(object):
             lms_song[n] = np.dot(song_coeffs, moving_song)
             lms_noise[n] = np.dot(noise_coeffs, moving_noise)
             error_signal[n] = input_signal[n] - lms_noise[n] - lms_song[n]
-            song_coeffs = song_coeffs + (self.step_size * error_signal[n]) * moving_song
-            noise_coeffs = noise_coeffs + (self.step_size * error_signal[n]) * moving_noise
+            try:
+                song_coeffs = song_coeffs + (self.step_size * error_signal[n] * moving_song / (np.linalg.norm(moving_song) ** 2))
+            except:
+                print(n)
+                print(error_signal[n])
+                return
+            noise_coeffs = noise_coeffs + (self.step_size * error_signal[n] * moving_noise / (np.linalg.norm(moving_noise) ** 2))
             noise_cancelled[n] = input_signal[n] - np.dot(noise_coeffs, moving_noise)
-            # if n == 44000:
-            #     print(n)
-            #     # print(e)
-            #     print(coeffs)
-            #     print(error_signal[n])
-            #     print(moving_signal)
-            #     break
         return error_signal, noise_cancelled
 
 if __name__ == '__main__':
     np.seterr(all='raise')
     nc = NoiseCanceller()
-    sr, haddaway = nc.load_audio('/Users/sam/Desktop/haddaway.wav')
-    sr2, headphone = nc.load_audio('/Users/sam/git/NoiseCancellation/new_left3.wav')
-    sr3, noise = nc.load_audio('/Users/sam/git/NoiseCancellation/new_right3.wav')
-    haddaway = haddaway[:, 0].flatten()
-    headphone = headphone[:, 0].flatten()
-    noise = noise[:, 1].flatten()
+    sr, haddaway = nc.load_audio('/Users/sam/git/NoiseCancellation/haddaway_reduced.wav')
+    sr2, headphone = nc.load_audio('/Users/sam/git/NoiseCancellation/left.wav')
+    sr3, noise = nc.load_audio('/Users/sam/git/NoiseCancellation/right.wav')
+    haddaway = haddaway[:, 0].flatten()[:200000]
+    headphone = headphone[:, 0].flatten()[:200000]
+    noise = noise[:, 1].flatten()[:200000]
     error, cancelled = nc.cancel_noise(headphone, haddaway, noise)
-    wavfile.write('/Users/sam/git/NoiseCancellation/cancelled.wav', sr3, cancelled[100:])
+    wavfile.write('/Users/sam/git/NoiseCancellation/cancelled.wav', sr3, cancelled[20000:])
     plt.figure(1)
 
     ax1 = plt.subplot(511)
