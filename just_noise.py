@@ -39,6 +39,8 @@ if __name__ == '__main__':
     headphone = headphone[:, 0].flatten()[20000:200000]
     noise = noise[:, 1].flatten()[20000:200000]
     error = nc.cancel_noise(headphone, noise)
+    wavfile.write('/Users/sam/git/NoiseCancellation/left_processed.wav', sr3, headphone)
+    wavfile.write('/Users/sam/git/NoiseCancellation/right_processed.wav', sr3, noise)
     wavfile.write('/Users/sam/git/NoiseCancellation/cancelled.wav', sr3, error)
     plt.figure(1)
 
@@ -60,7 +62,4 @@ if __name__ == '__main__':
     ax4.get_xaxis().set_visible(False)
     ax4.set_ylim([-20000, 20000])
 
-    # plt.show()
-
-    sd.play(error, sr2)
-    sd.play(headphone, sr2)
+    plt.show()
