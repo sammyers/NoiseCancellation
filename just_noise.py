@@ -6,7 +6,7 @@ import sounddevice as sd
 
 class NoiseCanceller(object):
 
-    def __init__(self, step_size=0.1, num_samples=500):
+    def __init__(self, step_size=0.5, num_samples=100):
         self.step_size = step_size
         self.num_samples = num_samples
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     ax3.set_ylim([-20000, 20000])
 
     ax4 = plt.subplot(313)
-    ax4.set_title('Error signal')
+    ax4.set_title('Cancelled')
     ax4.plot(error[::4])
     ax4.get_xaxis().set_visible(False)
     ax4.set_ylim([-20000, 20000])
